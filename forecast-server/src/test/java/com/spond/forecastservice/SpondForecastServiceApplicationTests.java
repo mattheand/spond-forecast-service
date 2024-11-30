@@ -1,4 +1,4 @@
-package com.spond.spond_forecast_service;
+package com.spond.forecastservice;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
