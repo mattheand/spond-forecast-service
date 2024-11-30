@@ -123,6 +123,11 @@ class MetApiServiceTest {
         assertThat(response.getBody()).isEqualTo(weatherData());
     }
 
+    //TODO: add one more test where the data is modified and the cache is updated
+    @Test
+    void when_getForecast_downstreamModified_updatesCacheWithNewData() {
+
+    }
 
 
     @Test
