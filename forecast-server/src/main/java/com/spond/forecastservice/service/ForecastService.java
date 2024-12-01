@@ -1,6 +1,7 @@
 package com.spond.forecastservice.service;
 
 import com.spond.forecastservice.domain.Event;
+import com.spond.forecastservice.domain.InvalidEventException;
 import com.spond.forecastservice.dto.ForecastDto;
 import com.spond.forecastservice.externalmodel.Data;
 import com.spond.forecastservice.externalmodel.Timeseries;
@@ -25,24 +26,23 @@ public class ForecastService {
     private final MetApiService metApiService;
 
     public ForecastDto findForecast(final Event event) {
-        if (isValidEvent(event)) {
-            //TODO handle response codes properly, check for 200 for example...
-            ResponseEntity<WeatherData> response = metApiService.getWeatherDataResponseEntity(event.latitude(), event.longitude());
-            WeatherData weatherData = response.getBody();
-            if (weatherData == null) {
-                throw new RuntimeException("Failed to retrieve forecast weatherData.");
-            }
+        validate(event);
 
-            List<Timeseries> timeseries = weatherData.getProperties().getTimeseries();
-            Data closestForecastData = findClosestForecastData(timeseries, event.startTime());
-
-            return ForecastDto.builder()
-                .windSpeed(closestForecastData.getInstant().getDetails().getWind_speed())
-                .airTemperature(closestForecastData.getInstant().getDetails().getAir_temperature())
-                .build();
-
+        //TODO handle response codes properly, check for 200 for example...
+        ResponseEntity<WeatherData> response = metApiService.getWeatherDataResponseEntity(event.latitude(),
+            event.longitude());
+        WeatherData weatherData = response.getBody();
+        if (weatherData == null) {
+            throw new RuntimeException("Failed to retrieve forecast weatherData.");
         }
-        throw new RuntimeException("Failed to find forecast.");
+
+        List<Timeseries> timeseries = weatherData.getProperties().getTimeseries();
+        Data closestForecastData = findClosestForecastData(timeseries, event.startTime());
+
+        return ForecastDto.builder()
+            .windSpeed(closestForecastData.getInstant().getDetails().getWind_speed())
+            .airTemperature(closestForecastData.getInstant().getDetails().getAir_temperature())
+            .build();
     }
 
 
@@ -85,21 +85,15 @@ public class ForecastService {
     }
 
     //for any event that starts in the next 7 days and has a location set
-    private boolean isValidEvent(final Event event) {
+    private void validate(final Event event) {
         Instant now = Instant.now();
-
-        // Ensure location is set
-        if (event.latitude() == 0.0 && event.longitude() == 0.0) {
-            return false;
-        }
-
         // Ensure the event has not already ended
         if (event.endTime().isBefore(now)) {
-            return false;
+            throw new InvalidEventException("Event has already ended!");
         }
-
-        //TODO: revist this condition to make it more clear
         Instant sevenDaysFromNow = now.plus(7, ChronoUnit.DAYS);
-        return !event.startTime().isBefore(now) && !event.startTime().isAfter(sevenDaysFromNow);
+        if (event.startTime().isAfter(sevenDaysFromNow)) {
+            throw new InvalidEventException("Event must be at most 7 days away!");
+        }
     }
 }

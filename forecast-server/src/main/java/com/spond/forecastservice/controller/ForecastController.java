@@ -6,7 +6,6 @@ import com.spond.forecastservice.service.ForecastService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -20,13 +19,6 @@ import java.time.Instant;
 public class ForecastController {
 
     private final ForecastService forecastService;
-
-
-    //TODO: probably makes more sense to accept an event id instead of all the parameters of the event...
-    @GetMapping("/event/forecast/{eventId}")
-    public ForecastDto getForecastById(@PathVariable String eventId) {
-        return ForecastDto.builder().build();
-    }
 
     @GetMapping("/event/forecast")
     public ForecastDto getForecast(@RequestParam double latitude,

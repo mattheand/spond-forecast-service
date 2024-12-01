@@ -62,7 +62,12 @@ public class MetApiService {
             return ResponseEntity.ok(cachedData.data());
         }
 
-        // Update the cache with new data
+        cacheResponse(url, response);
+
+        return response;
+    }
+
+    private void cacheResponse(String url, ResponseEntity<WeatherData> response) {
         log.info("Updating cache entry!!");
         HttpHeaders responseHeaders = response.getHeaders();
         String expires = responseHeaders.getFirst(HttpHeaders.EXPIRES);
@@ -74,8 +79,6 @@ public class MetApiService {
                 .expiresAt(expires != null ? toInstant(expires) : Instant.now().plus(30, ChronoUnit.SECONDS))
                 .lastModified(lastModified)
                 .build());
-
-        return response;
     }
 
     private static String buildRequestUrl(double latitude, double longitude) {
