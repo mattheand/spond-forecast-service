@@ -23,7 +23,13 @@
 ### Next steps improvements:
 
 1) Make sure that the event has the most up-to-date forecast just before the event(maybe 1H/30m before start time??)
-   If the event forecast has been cached it could be we will get the entry from the cache and not from the downstream client
+   1) If the event forecast has been cached it could be we will get the entry from the cache and not from the downstream client
 2) Properly leverage end-time to find forecasts during the event
 3) Use the same Instant.now() across the entire stack of calls for the sake of consistency
-4Make external data pojos follow camel case java practises
+4) Make external data POJO follow camel case java practises
+
+### Deployment:
+
+1) Build the jar and push it to a container repository(jenkins or similar software)
+2) Define k8s deployment files using the docker image in the container repository
+3) Let argo CD sync the k8s deployment descriptors to a k8s cluster

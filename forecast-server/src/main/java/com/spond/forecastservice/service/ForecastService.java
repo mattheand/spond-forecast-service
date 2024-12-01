@@ -73,7 +73,7 @@ public class ForecastService {
         long beforeDiff = Math.abs(times.get(beforeIndex).toEpochMilli() - startTime.toEpochMilli());
         long afterDiff = Math.abs(times.get(afterIndex).toEpochMilli() - startTime.toEpochMilli());
 
-        return (beforeDiff <= afterDiff) ? beforeIndex : afterIndex;
+        return beforeDiff <= afterDiff ? beforeIndex : afterIndex;
     }
 
     //for any event that starts in the next 7 days and has a location set
