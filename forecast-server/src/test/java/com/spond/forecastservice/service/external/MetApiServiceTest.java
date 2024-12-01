@@ -50,7 +50,7 @@ class MetApiServiceTest {
 
         when(weatherDataCache.getIfPresent(anyString())).thenReturn(cachedData);
 
-        ResponseEntity<WeatherData> response = service.getWeatherDataResponseEntity(latitude, longitude);
+        ResponseEntity<WeatherData> response = service.getLocationForecast(latitude, longitude);
 
         //assertions
         assertThat(HttpStatus.OK).isEqualTo(response.getStatusCode());
@@ -76,7 +76,7 @@ class MetApiServiceTest {
             any(HttpEntity.class),
             eq(WeatherData.class))).thenReturn(ResponseEntity.ok(weatherData()));
 
-        ResponseEntity<WeatherData> response = service.getWeatherDataResponseEntity(latitude, longitude);
+        ResponseEntity<WeatherData> response = service.getLocationForecast(latitude, longitude);
 
         //assertions
         assertThat(HttpStatus.OK).isEqualTo(response.getStatusCode());
@@ -110,7 +110,7 @@ class MetApiServiceTest {
             any(HttpEntity.class),
             eq(WeatherData.class))).thenReturn(apiResponse);
 
-        ResponseEntity<WeatherData> response = service.getWeatherDataResponseEntity(latitude, longitude);
+        ResponseEntity<WeatherData> response = service.getLocationForecast(latitude, longitude);
 
         //assertions
         assertThat(HttpStatus.OK).isEqualTo(response.getStatusCode());
@@ -144,7 +144,7 @@ class MetApiServiceTest {
             any(HttpEntity.class),
             eq(WeatherData.class))).thenReturn(apiResponse);
 
-        ResponseEntity<WeatherData> response = service.getWeatherDataResponseEntity(latitude, longitude);
+        ResponseEntity<WeatherData> response = service.getLocationForecast(latitude, longitude);
 
         //assertions
         assertThat(HttpStatus.OK).isEqualTo(response.getStatusCode());

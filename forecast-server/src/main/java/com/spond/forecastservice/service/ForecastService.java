@@ -28,15 +28,12 @@ public class ForecastService {
     public ForecastDto findForecast(final Event event) {
         validate(event);
 
-        //TODO handle response codes properly, check for 200 for example...
-        ResponseEntity<WeatherData> response = metApiService.getWeatherDataResponseEntity(event.latitude(),
-            event.longitude());
-        WeatherData weatherData = response.getBody();
-        if (weatherData == null) {
-            throw new RuntimeException("Failed to retrieve forecast weatherData.");
+        ResponseEntity<WeatherData> response = metApiService.getLocationForecast(event.latitude(), event.longitude());
+        if (!response.getStatusCode().is2xxSuccessful() || response.getBody() == null) {
+            throw new RuntimeException("Failed to retrieve forecast!");
         }
-
-        List<Timeseries> timeseries = weatherData.getProperties().getTimeseries();
+        //TODO:check for null before get
+        List<Timeseries> timeseries = response.getBody().getProperties().getTimeseries();
         Data closestForecastData = findClosestForecastData(timeseries, event.startTime());
 
         return ForecastDto.builder()
@@ -44,7 +41,6 @@ public class ForecastService {
             .airTemperature(closestForecastData.getInstant().getDetails().getAir_temperature())
             .build();
     }
-
 
     public static Instant findClosestTime(final List<Instant> times, final Instant startTime) {
         return times.get(findClosestTimeIndex(times, startTime));
@@ -85,6 +81,7 @@ public class ForecastService {
     }
 
     //for any event that starts in the next 7 days and has a location set
+    //TODO: add validation for valid coordinates + tests
     private void validate(final Event event) {
         Instant now = Instant.now();
         // Ensure the event has not already ended

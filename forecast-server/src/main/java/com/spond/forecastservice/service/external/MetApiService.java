@@ -29,32 +29,32 @@ public class MetApiService {
     private final RestTemplate restTemplate;
     private final Cache<String, CachedWeatherData> weatherDataCache;
 
-    public ResponseEntity<WeatherData> getWeatherDataResponseEntity(final double latitude, final double longitude) {
-        String url = buildRequestUrl(latitude, longitude);
-
-        // Check if data is in cache
-        CachedWeatherData cachedData = weatherDataCache.getIfPresent(url);
-        if (cachedData != null && cachedData.expiresAt().isAfter(Instant.now())) {
-            // Return cached data if valid
-            log.info("Returning data from cache!!");
-            return ResponseEntity.ok(cachedData.data());
+    public ResponseEntity<WeatherData> getLocationForecast(final double latitude, final double longitude) {
+        try {
+            String url = buildRequestUrl(latitude, longitude);
+            // Check if data is in cache
+            CachedWeatherData cachedData = weatherDataCache.getIfPresent(url);
+            if (cachedData != null && cachedData.expiresAt().isAfter(Instant.now())) {
+                // Return cached data if valid
+                log.info("Returning data from cache!!");
+                return ResponseEntity.ok(cachedData.data());
+            }
+            return makeApiCall(url, cachedData);
         }
-
-        return makeApiCall(url, cachedData);
+        catch (Exception e) {
+            log.error(e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
     }
 
     private ResponseEntity<WeatherData> makeApiCall(String url, CachedWeatherData cachedData) {
-        // Prepare headers
         HttpHeaders headers = new HttpHeaders();
         headers.add("User-Agent", USER_AGENT_VALUE);
         if (cachedData != null && cachedData.lastModified() != null) {
             headers.add("If-Modified-Since", cachedData.lastModified());
         }
 
-        ResponseEntity<WeatherData> response = restTemplate.exchange(url,
-            HttpMethod.GET,
-            new HttpEntity<>(headers),
-            WeatherData.class);
+        ResponseEntity<WeatherData> response = restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), WeatherData.class);
 
         if (response.getStatusCode() == HttpStatus.NOT_MODIFIED && cachedData != null) {
             // Data hasn't changed, return cached data
@@ -63,7 +63,6 @@ public class MetApiService {
         }
 
         cacheResponse(url, response);
-
         return response;
     }
 
