@@ -42,42 +42,38 @@ public class ForecastService {
             .build();
     }
 
-    public static Instant findClosestTime(final List<Instant> times, final Instant startTime) {
+    //This method is only added to make testing easier
+    protected static Instant findClosestTime(final List<Instant> times, final Instant startTime) {
         return times.get(findClosestTimeIndex(times, startTime));
     }
 
-    public static Data findClosestForecastData(final List<Timeseries> timeseries, final Instant startTime) {
+    private static Data findClosestForecastData(final List<Timeseries> timeseries, final Instant startTime) {
         List<Instant> times = timeseries.stream().map(Timeseries::getTime).toList();
         //Rely on the index search
         return timeseries.get(findClosestTimeIndex(times, startTime)).getData();
     }
 
-    //Todo: create an utils class and move this there
-    public static int findClosestTimeIndex(final List<Instant> times, final Instant startTime) {
+    //Note the list is returned already sorted by timestamp, so we should not need to reorder the collection
+    private static int findClosestTimeIndex(final List<Instant> times, final Instant startTime) {
         int index = Collections.binarySearch(times, startTime);
 
         if (index >= 0) {
-            // Exact match found
-            return index;
+            return index; // Exact match found
         }
 
         int insertionPoint = -(index + 1);
+        int beforeIndex = insertionPoint - 1; // Closest before
+        int afterIndex = insertionPoint;     // Closest after
 
-        // Get the indices of the closest times (before and after)
-        int beforeIndex = (insertionPoint > 0) ? insertionPoint - 1 : -1;
-        int afterIndex = (insertionPoint < times.size()) ? insertionPoint : -1;
+        // Handle edge cases: startTime before the first element or after the last
+        if (beforeIndex < 0) return afterIndex;
+        if (afterIndex >= times.size()) return beforeIndex;
 
-        // Return the closest of the two (before and after)
-        if (beforeIndex == -1)
-            return afterIndex;
-        if (afterIndex == -1)
-            return beforeIndex;
-
-        // Calculate the difference in milliseconds and return the closest index
+        // Calculate the difference in milliseconds and return the index of the closes value of the startTime of interest
         long beforeDiff = Math.abs(times.get(beforeIndex).toEpochMilli() - startTime.toEpochMilli());
         long afterDiff = Math.abs(times.get(afterIndex).toEpochMilli() - startTime.toEpochMilli());
 
-        return beforeDiff <= afterDiff ? beforeIndex : afterIndex;
+        return (beforeDiff <= afterDiff) ? beforeIndex : afterIndex;
     }
 
     //for any event that starts in the next 7 days and has a location set
